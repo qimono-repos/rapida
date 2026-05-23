@@ -14,11 +14,42 @@
   </ion-header>
 
   <div class="touch-container" #touchContainer (pointerdown)="onTap($event)">
-    <div class="status-panel">
+    <div class="status-panel ignore-tap">
       <div class="status-line">Captured {{ points().length }} of 4 points</div>
       <div class="status-hint" *ngIf="canCapture()">Tap or click inside the area to add a point.</div>
-      <div class="status-hint complete" *ngIf="!canCapture()">4 points captured. Further taps are disabled.</div>
+      <div class="status-hint complete" *ngIf="!canCapture()">4 points captured. Tap Reset to clear.</div>
+      <ion-button fill="outline" color="danger" size="small" (click)="resetPoints()" class="action-button ignore-tap">
+        Reset/Clear
+      </ion-button>
     </div>
+
+    <ion-card *ngIf="regression()" class="summary-card ignore-tap">
+      <ion-card-header>
+        <ion-card-title>Regression summary</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="summary-row">
+          <ion-text color="medium"><strong>Points</strong></ion-text>
+        </div>
+        <div class="points-list">
+          <div class="point-item" *ngFor="let point of regression()?.points; let idx = index">
+            {{ idx + 1 }}: [{{ point[0] }}, {{ point[1] }}]
+          </div>
+        </div>
+        <div class="summary-row">
+          <span>Slope (m):</span>
+          <span>{{ regression()?.m | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Intercept (b):</span>
+          <span>{{ regression()?.b | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row predictive">
+          <span>Predicted 5th point:</span>
+          <span>[{{ regression()?.x5 }}, {{ regression()?.y5 | number:'1.2-2' }}]</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
     <div
       class="point-dot"
