@@ -1,8 +1,8 @@
 {
   "name": "rapida",
   "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "author": "Qimono",
+  "homepage": "https://github.com/qimono-repos/rapida",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
