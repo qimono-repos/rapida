@@ -6,12 +6,26 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="tab1-content">
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Linear regression</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <app-explore-container name="Linear regression"></app-explore-container>
+  <div class="touch-container" #touchContainer (pointerdown)="onTap($event)">
+    <div class="status-panel">
+      <div class="status-line">Captured {{ points().length }} of 4 points</div>
+      <div class="status-hint" *ngIf="canCapture()">Tap or click inside the area to add a point.</div>
+      <div class="status-hint complete" *ngIf="!canCapture()">4 points captured. Further taps are disabled.</div>
+    </div>
+
+    <div
+      class="point-dot"
+      *ngFor="let point of points(); let i = index"
+      [style.left.px]="point[0]"
+      [style.top.px]="point[1]"
+      [attr.aria-label]="'Point ' + (i + 1) + ' at ' + point[0] + ', ' + point[1]"
+    ></div>
+  </div>
 </ion-content>
