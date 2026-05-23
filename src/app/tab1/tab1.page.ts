@@ -61,7 +61,7 @@ export class Tab1Page {
     const denominator = N * sumX2 - sumX * sumX;
     const m = denominator === 0 ? 0 : (N * sumXY - sumX * sumY) / denominator;
     const b = (sumY - m * sumX) / N;
-    const x5 = Math.max(...points.map(([x]) => x)) + 10;
+    const x5 = Math.max(...points.map(([x]) => x)) + 30;
     const y5 = m * x5 + b;
 
     return {
