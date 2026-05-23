@@ -1,6 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, computed, effect, signal } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import {
+  Component,
+  ElementRef,
+  ViewChild,
+  computed,
+  effect,
+  signal,
+  AfterViewInit,
+  HostListener,
+} from '@angular/core';
+import {
+  IonicModule,
+  IonButton,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+} from '@ionic/angular';
 
 export type Point = [number, number];
 
@@ -29,6 +45,8 @@ export class Tab1Page {
   canCapture = computed(() => this.points().length < 4);
   hasPoints = computed(() => this.points().length > 0);
 
+  containerSize = signal({ width: 0, height: 0 });
+
   regression = computed<RegressionSummary | null>(() => {
     const points = this.points();
     if (points.length !== 4) {
@@ -55,6 +73,18 @@ export class Tab1Page {
     };
   });
 
+  lineCoords = computed(() => {
+    const reg = this.regression();
+    const size = this.containerSize();
+    if (!reg || size.width === 0 || size.height === 0) return null;
+
+    const x1 = 0;
+    const y1 = reg.b;
+    const x2 = size.width;
+    const y2 = reg.m * x2 + reg.b;
+    return { x1, y1, x2, y2, width: size.width, height: size.height };
+  });
+
   constructor() {
     this.hydrateFromStorage();
 
@@ -64,14 +94,52 @@ export class Tab1Page {
         const payload = JSON.stringify(this.pointPayload(), null, 2);
         localStorage.setItem(this.storageKey, payload);
         console.debug('Captured points JSON payload:', payload);
-        console.log(payload);
+        console.log('Regression summary for 4 captured points:');
+        console.log(`Points:\n${points.map(([x, y], idx) => `${idx + 1}: [${x}, ${y}]`).join('\n')}`);
+        const reg = this.regression();
+        if (reg) {
+          console.log(`Slope (m): ${reg.m}`);
+          console.log(`Intercept (b): ${reg.b}`);
+          console.log(`Predicted 5th point: [${reg.x5}, ${reg.y5}]`);
+        }
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.updateContainerSize());
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateContainerSize();
+  }
+
+  private updateContainerSize(): void {
+    const el = this.touchContainer?.nativeElement;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    this.containerSize.set({ width: Math.max(0, Math.round(rect.width)), height: Math.max(0, Math.round(rect.height)) });
   }
 
   resetPoints(): void {
     this.points.set([]);
     localStorage.removeItem(this.storageKey);
+  }
+
+  xOf(point: unknown): number | null {
+    if (!point || !Array.isArray(point) || typeof point[0] !== 'number') return null;
+    return point[0] as number;
+  }
+
+  yOf(point: unknown): number | null {
+    if (!point || !Array.isArray(point) || typeof point[1] !== 'number') return null;
+    return point[1] as number;
+  }
+
+  ariaLabel(point: unknown, index: number): string | null {
+    if (!point || !Array.isArray(point) || typeof point[0] !== 'number' || typeof point[1] !== 'number') return null;
+    return `Point ${index + 1} at ${point[0]}, ${point[1]}`;
   }
 
   onTap(event: PointerEvent): void {
@@ -97,7 +165,10 @@ export class Tab1Page {
       if (current.length >= 4) {
         return current;
       }
-      return [...current, [x, y]];
+      const next = [...current, [x, y]] as Point[];
+      // update container size when new point added (helps line rendering)
+      setTimeout(() => this.updateContainerSize(), 0);
+      return next;
     });
   }
 

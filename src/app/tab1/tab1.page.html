@@ -23,40 +23,37 @@
       </ion-button>
     </div>
 
-    <ion-card *ngIf="regression()" class="summary-card ignore-tap">
-      <ion-card-header>
-        <ion-card-title>Regression summary</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="summary-row">
-          <ion-text color="medium"><strong>Points</strong></ion-text>
-        </div>
-        <div class="points-list">
-          <div class="point-item" *ngFor="let point of regression()?.points; let idx = index">
-            {{ idx + 1 }}: [{{ point[0] }}, {{ point[1] }}]
-          </div>
-        </div>
-        <div class="summary-row">
-          <span>Slope (m):</span>
-          <span>{{ regression()?.m | number:'1.2-2' }}</span>
-        </div>
-        <div class="summary-row">
-          <span>Intercept (b):</span>
-          <span>{{ regression()?.b | number:'1.2-2' }}</span>
-        </div>
-        <div class="summary-row predictive">
-          <span>Predicted 5th point:</span>
-          <span>[{{ regression()?.x5 }}, {{ regression()?.y5 | number:'1.2-2' }}]</span>
-        </div>
-      </ion-card-content>
-    </ion-card>
+    <!-- SVG slope line overlay -->
+    <svg class="slope-svg" *ngIf="lineCoords() as lc" [attr.width]="lc.width" [attr.height]="lc.height">
+      <line
+        [attr.x1]="lc.x1"
+        [attr.y1]="lc.y1"
+        [attr.x2]="lc.x2"
+        [attr.y2]="lc.y2"
+        stroke="#888"
+        stroke-width="2"
+        stroke-dasharray="6 6"
+        stroke-linecap="round"
+      ></line>
+    </svg>
+
+    <!-- predictive 5th point (blue, double radius) -->
+    <ng-container *ngIf="regression()">
+      <div
+        class="pred-dot"
+        *ngIf="regression()"
+        [style.left.px]="regression()?.x5"
+        [style.top.px]="regression()?.y5"
+        aria-hidden="false"
+      ></div>
+    </ng-container>
 
     <div
       class="point-dot"
       *ngFor="let point of points(); let i = index"
-      [style.left.px]="point[0]"
-      [style.top.px]="point[1]"
-      [attr.aria-label]="'Point ' + (i + 1) + ' at ' + point[0] + ', ' + point[1]"
+      [style.left.px]="xOf(point)"
+      [style.top.px]="yOf(point)"
+      [attr.aria-label]="ariaLabel(point, i)"
     ></div>
   </div>
 </ion-content>
